@@ -4,17 +4,19 @@ const raekwon = require('raekwon')
 const parse = require('./lib/parser')
 
 const render = async (el, arr, settings, innerHTML) => {
-  let tmp = arr.map(t => {
-    if (typeof t === 'string') return t
-    else if (typeof t === 'function') return t(settings, innerHTML)
+  let results = []
+
+  for (const t of arr) {
+    if (typeof t === 'string') results.push(t)
+    else if (typeof t === 'function') results.push(await t(settings, innerHTML))
     /* For some reason istanbul can't just ignore the else statement here. */
     else /* istanbul ignore next */ if (t instanceof HTMLElement) {
-      return t
+      results.push(t)
     /* Can't test this effectively since renders aren't sync */
     /* istanbul ignore next */
     } else throw new Error(`Unknown type in template: ${t}`)
-  })
-  let results = await Promise.all(tmp)
+  }
+
   return raekwon(el, results)
 }
 
